@@ -2,7 +2,7 @@
   "name": "echo-bot",
   "version": "0.0.0",
   "description": "An example LINE bot just to echo messages",
-  "main": "liff server.js",
+  "main": "server.js",
   "scripts": {
     "start": "node ."
   },
