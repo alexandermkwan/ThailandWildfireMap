@@ -11,24 +11,23 @@ let width = 960,
 
 // Promise.all first loads these files and will run the function afterwards.
 Promise.all([
-    // d3.json("thailand.json"),
+    d3.json("thailand.json"),
     d3.csv("coordinates.csv")
-]).then( ([coordinates]) => {
+]).then( ([provinceData, coordinates]) => {
 
-    fetch('/getdata', {
-        method:'POST',
-        body: JSON.stringify( { 'query' : "SELECT * FROM NASA_Firm_Data"} ),
-        headers : {
-            "Content-Type" : "application/json"
-        }
-    }).then(res => res.json())
-    .then(json => {
-        console.log(json);
+    // fetch('/getdata', {
+    //     method:'POST',
+    //     body: JSON.stringify( { 'query' : "SELECT * FROM NASA_Firm_Data"} ),
+    //     headers : {
+    //         "Content-Type" : "application/json"
+    //     }
+    // }).then(res => res.json())
+    // .then(json => {
+    //     console.log(json);
+    //
+    // })
 
-    })
 
-
-    let provinceData = 6543;
     createMap(provinceData, coordinates)
 
 })

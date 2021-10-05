@@ -9,8 +9,6 @@ const https = require("https");
 const fs = require("fs");
 const request = require('request');
 const bodyParser = require("body-parser");
-const Nasa_Firms = require("./public/routes/nasa_firms")
-const mysqlConnection=require("./public/testconnection")
 
 
 require('dotenv').config();
@@ -48,30 +46,9 @@ app.get("/Fire%20Timeline", function(req, res) {
   res.sendFile(__dirname + "/public/firetimeline.html")
 });
 
-app.get("/CuSense", function(req, res) {
-  res.sendFile(__dirname + "/public/cusense.html")
-});
-
-app.get("/Windy", function(req, res) {
-  res.sendFile(__dirname + "/public/windy.html")
-});
 
 
 // DATABASE STUFF
-app.use('/nasa_firms', Nasa_Firms)
-
-app.post("/getdata", bodyParser.json(), function(req, res) {
-  let query = req.body
-  mysqlConnection.query(query["query"], (err, rows, fields) => {
-    if(!err) {
-        let mapData = rows;
-        res.send(mapData)
-    }
-    else {
-        console.log(err);
-    }
-  })
-})
 
 
 
@@ -96,65 +73,6 @@ app.post('/callback', line.middleware(config), (req, res) => {
 //   useUnifiedTopology: true
 // });
 
-//parsing Nasa information
-async function windyFetch() {
-  return await fetch('https://api.windy.com/api/point-forecast/v2', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        lat: 17.573,
-        lon: 98.808,
-        model: "gfs",
-        parameters: ["temp", "precip", "wind", "windGust", "ptype", "rh", "pressure", "cosc"],
-        levels: ["surface"],
-        key: '8Cq5Sg5sJRRvjtj58rFQurjPUfFaVGCH'
-      })
-    })
-    .then(response => {
-      return response.json();
-    })
-    .then(responseData => {
-      console.log(responseData);
-      return responseData;
-    })
-}
-
-
-async function cuSenseFetch(sensor) {
-  return await fetch('https://www.cusense.net:8082/api/v1/sensorData/realtime/all', {
-      method: 'POST',
-      headers: {
-        'X-Gravitee-Api-Key': '3d9c7df5-1262-45ad-a311-ff5ae72b4cb8',
-        'Content-Type': 'application/json'
-      },
-      body: '{\"topic\":\"' + sensor + '\"}'
-    })
-    .then(response => {
-      let json = response.json();
-      return json;
-    })
-    .then(responseData => {
-      const stationData = responseData[sensor].data;
-      stationData.name = responseData[sensor].info["name"];
-      stationData.province = responseData[sensor].info["province"];
-      stationData.sensor = responseData[sensor].info["project"];
-
-      const date = new Date(stationData[0].time.substr(0, 19));
-      const messageResponse = "Data provided by " + stationData.sensor + " for " + stationData.name + " in " + stationData.province + ",\n" + "On " + date.toDateString() +
-        ", \n" + "The temperature is " + stationData[0].temp + " ℃, \n" + "PM1 concentration is " + stationData[0]["pm1"] + " µg/m3, \n" + "PM25 concentration is " + stationData[0]["pm25"] + " µg/m3, \n" + "PM10 concentration is " + stationData[0]["pm10"] + " µg/m3, \n" + "The humidity is " + stationData[0].humid + "%. \n" + "Data changes every hour!";
-
-      return messageResponse;
-    });
-}
-
-app.get("/recieve", async function(req, res) {
-  let sensorOne = await cuSenseFetch("cusensor3/8CAAB5852984");
-  let sensorTwo = await cuSenseFetch("cusensor3/8CAAB5851AD4");
-  res.json(sensorOne + "\n \n \n" + sensorTwo + "\n \n \n");
-});
-
 // event handler
 async function handleEvent(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
@@ -172,24 +90,6 @@ async function handleEvent(event) {
     return client.replyMessage(event.replyToken, {
       type: 'text',
       text: "Currently, our Nasa FIRMS Fire Hotspot tool is underdevelopment. \n \n \n Please take a look at the following to see our webpage to view the tool: \n \n https://maepingfirepa.herokuapp.com/Fire%20Timeline"
-    });
-  } else if (event.message.text.match("CUsense")) {
-
-    let sensorOne = await cuSenseFetch("cusensor3/8CAAB5852984");
-    let sensorTwo = await cuSenseFetch("cusensor3/8CAAB5851AD4");
-    return client.replyMessage(event.replyToken, [{
-      type: 'text',
-      text: sensorOne + "\n \n \n" + sensorTwo + "\n \n \n"
-    }, {
-      type: 'text',
-      text: "For more info look at : https://cusense.net/map"
-    }]);
-  } else if (event.message.text.match("Windy")) {
-
-    let windyData = await windyFetch();
-    return client.replyMessage(event.replyToken, {
-      type: 'text',
-      text: "To view our Windy App, please take a look at the following link which includes the app itself: \n \n https://maepingfirepa.herokuapp.com/Windy "
     });
   } else if (event.message.text.match("About Bushfire")) {
     return client.replyMessage(event.replyToken, {
