@@ -15,17 +15,17 @@ Promise.all([
     d3.csv("coordinates.csv")
 ]).then( ([provinceData, coordinates]) => {
 
-    // fetch('/getdata', {
-    //     method:'POST',
-    //     body: JSON.stringify( { 'query' : "SELECT * FROM NASA_Firm_Data"} ),
-    //     headers : {
-    //         "Content-Type" : "application/json"
-    //     }
-    // }).then(res => res.json())
-    // .then(json => {
-    //     console.log(json);
-    //
-    // })
+    fetch('/getdata', {
+        method:'POST',
+        body: JSON.stringify( { 'query' : "SELECT * FROM nasafirmdata"} ),
+        headers : {
+            "Content-Type" : "application/json"
+        }
+    }).then(res => res.json())
+    .then(json => {
+        console.log(json);
+
+    })
 
 
     createMap(provinceData, coordinates)
