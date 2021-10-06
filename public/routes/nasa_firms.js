@@ -7,7 +7,7 @@ const mysqlConnection = require('../sql_connection')
 var url = "https://firms.modaps.eosdis.nasa.gov/data/active_fire/modis-c6.1/csv/MODIS_C6_1_SouthEast_Asia_24h.csv"
 
 
-function getData(url, res) {
+function getData(url) {
     console.log('Started Get Data Function')
   https.get(url, (resp) => {
     let data = '';
@@ -19,7 +19,7 @@ function getData(url, res) {
  
     // The whole response has been received. Print out the result.
     resp.on('end', () => {
-        pcsv(data, res);
+        pcsv(data);
     });
  
   }).on("error", (err) => {
@@ -29,14 +29,14 @@ function getData(url, res) {
 
 
 //latitude,longitude,brightness,scan,track,acq_date,acq_time,satellite,confidence,version,bright_t31,frp,daynight
-function pcsv(csvStr, res) {
+function pcsv(csvStr) {
     csv({
        noheader:false,
    })
    .fromString(csvStr)
    .then((csvRow)=>{
         insertIntoDB(csvRow);
-        res.send("Everything Was Inputted")
+        console.log("Everything Was Inputted")
    })
 }
 
@@ -46,7 +46,7 @@ function insertIntoDB(csvRow) {
     // execute the insert statment
     
     for(var i = 0; i < csvRow.length; i++) {
-        let sql = "INSERT INTO NASA_Firm_Data (latitude, longitude, brightness, scan, track, acq_date, acq_time, satellite, confidence, version, bright_t31, frp, daynight) VALUES(";
+        let sql = "INSERT INTO nasafirmdata (latitude, longitude, brightness, scan, track, acq_date, acq_time, satellite, confidence, version, bright_t31, frp, daynight) VALUES(";
 
         for(var key in csvRow[i]) {
             sql = sql + `'${csvRow[i][key]}', `;
@@ -68,8 +68,8 @@ function insertIntoDB(csvRow) {
     
 }
 
-Router.get("/", (req, res) => {
-    getData(url,res);
-})
+// Router.get("/", (req, res) => {
+getData(url);
+// })
 
 module.exports = Router;

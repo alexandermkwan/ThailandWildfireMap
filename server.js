@@ -62,30 +62,32 @@ app.get("/Fire%20Timeline", function(req, res) {
 //   console.log('running a task every minute');
 // });
 
-var mysqlConnection = mysql.createConnection({
-  host : "us-cdbr-east-04.cleardb.com",
-  user : "bb19162737b894",
-  password : "2276a432",
-  database : "heroku_edad5aff4876c3a",
-  multipleStatements : true
-});
-
-mysqlConnection.connect((err) => {
-  console.log("Trying to connect to server")
-  if(err) throw err;
-  console.log("Connected");
-});
 
 // Runs a dummy query in the server every 5 seconds
 // This ensures it won't lose connection
-setInterval(function () {
-  mysqlConnection.query('SELECT 1');
-}, 5000);
+// setInterval(function () {
+//   mysqlConnection.query('SELECT 1');
+// }, 5000);
 
 
 // app.use('/nasa_firms', Nasa_Firms)
 
 app.post("/getdata", bodyParser.json(), function(req, res) {
+  // Connect to DB
+  var mysqlConnection = mysql.createConnection({
+    host : "us-cdbr-east-04.cleardb.com",
+    user : "bb19162737b894",
+    password : "2276a432",
+    database : "heroku_edad5aff4876c3a",
+    multipleStatements : true
+  });
+
+  mysqlConnection.connect((err) => {
+    console.log("Trying to connect to server")
+    if(err) throw err;
+    console.log("Connected");
+  });
+
   let query = req.body
   mysqlConnection.query(query["query"], (err, rows, fields) => {
     if(!err) {
