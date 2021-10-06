@@ -34,6 +34,5 @@
     "wget": "0.0.1"
   },
   "devDependencies": {
-    "node-cron": "^3.0.0"
   }
 }

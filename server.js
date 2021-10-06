@@ -14,7 +14,7 @@ const mysql = require('mysql');
 
 // const mysqlConnection=require("./public/sql_connection")
 // const Nasa_Firms = require("./public/routes/nasa_firms")
-const cron = require('node-cron');
+// const cron = require('node-cron');
 
 
 
@@ -58,9 +58,9 @@ app.get("/Fire%20Timeline", function(req, res) {
 
 // DATABASE STUFF
 
-cron.schedule('* * * * *', function() {
-  console.log('running a task every minute');
-});
+// cron.schedule('* * * * *', function() {
+//   console.log('running a task every minute');
+// });
 
 var mysqlConnection = mysql.createConnection({
   host : "us-cdbr-east-04.cleardb.com",
