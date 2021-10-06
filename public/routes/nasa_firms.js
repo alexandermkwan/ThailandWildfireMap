@@ -8,6 +8,7 @@ var url = "https://firms.modaps.eosdis.nasa.gov/data/active_fire/modis-c6.1/csv/
 
 
 function getData(url, res) {
+    console.log('Started Get Data Function')
   https.get(url, (resp) => {
     let data = '';
  

@@ -11,6 +11,7 @@ const request = require('request');
 const bodyParser = require("body-parser");
 const mysqlConnection=require("./public/sql_connection")
 const Nasa_Firms = require("./public/routes/nasa_firms")
+const cron = require('node-cron');
 
 
 
@@ -53,7 +54,13 @@ app.get("/Fire%20Timeline", function(req, res) {
 
 
 // DATABASE STUFF
-app.use('/nasa_firms', Nasa_Firms)
+
+// cron.schedule('* * * * *', function() {
+//   console.log('running a task every minute');
+// });
+
+
+// app.use('/nasa_firms', Nasa_Firms)
 
 app.post("/getdata", bodyParser.json(), function(req, res) {
   let query = req.body
