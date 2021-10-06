@@ -9,9 +9,12 @@ const https = require("https");
 const fs = require("fs");
 const request = require('request');
 const bodyParser = require("body-parser");
+const mysql = require('mysql');
+
+
 // const mysqlConnection=require("./public/sql_connection")
 // const Nasa_Firms = require("./public/routes/nasa_firms")
-// const cron = require('node-cron');
+const cron = require('node-cron');
 
 
 
@@ -55,9 +58,29 @@ app.get("/Fire%20Timeline", function(req, res) {
 
 // DATABASE STUFF
 
-// cron.schedule('* * * * *', function() {
-//   console.log('running a task every minute');
-// });
+cron.schedule('* * * * *', function() {
+  console.log('running a task every minute');
+});
+
+var mysqlConnection = mysql.createConnection({
+  host : "us-cdbr-east-04.cleardb.com",
+  user : "bb19162737b894",
+  password : "2276a432",
+  database : "heroku_edad5aff4876c3a",
+  multipleStatements : true
+});
+
+mysqlConnection.connect((err) => {
+  console.log("Trying to connect to server")
+  if(err) throw err;
+  console.log("Connected");
+});
+
+// Runs a dummy query in the server every 5 seconds
+// This ensures it won't lose connection
+setInterval(function () {
+  mysqlConnection.query('SELECT 1');
+}, 5000);
 
 
 // app.use('/nasa_firms', Nasa_Firms)

@@ -33,5 +33,7 @@
     "uuid": "^8.3.2",
     "wget": "0.0.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "node-cron": "^3.0.0"
+  }
 }
