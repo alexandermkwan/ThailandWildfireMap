@@ -25,12 +25,15 @@ Promise.all([
     }).then(res => res.json())
     .then(json => {
         console.log(json);
+        console.log(json[0])
         coordinates = json
+        createMap(provinceData, coordinates)
 
     })
 
 
-    createMap(provinceData, coordinates)
+
+
 
 })
 
