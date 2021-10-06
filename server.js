@@ -9,6 +9,10 @@ const https = require("https");
 const fs = require("fs");
 const request = require('request');
 const bodyParser = require("body-parser");
+const mysqlConnection=require("./public/sql_connection")
+const Nasa_Firms = require("./public/routes/nasa_firms")
+
+
 
 
 require('dotenv').config();
@@ -49,6 +53,20 @@ app.get("/Fire%20Timeline", function(req, res) {
 
 
 // DATABASE STUFF
+app.use('/nasa_firms', Nasa_Firms)
+
+app.post("/getdata", bodyParser.json(), function(req, res) {
+  let query = req.body
+  mysqlConnection.query(query["query"], (err, rows, fields) => {
+    if(!err) {
+      let mapData = rows;
+      res.send(mapData)
+    }
+    else {
+      console.log(err);
+    }
+  })
+})
 
 
 
