@@ -9,8 +9,8 @@ const https = require("https");
 const fs = require("fs");
 const request = require('request');
 const bodyParser = require("body-parser");
-const mysqlConnection=require("./public/sql_connection")
-const Nasa_Firms = require("./public/routes/nasa_firms")
+// const mysqlConnection=require("./public/sql_connection")
+// const Nasa_Firms = require("./public/routes/nasa_firms")
 // const cron = require('node-cron');
 
 
