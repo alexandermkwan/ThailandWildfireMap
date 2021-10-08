@@ -6,7 +6,6 @@ const mysqlConnection = require('../sql_connection')
 
 var url = "https://firms.modaps.eosdis.nasa.gov/data/active_fire/modis-c6.1/csv/MODIS_C6_1_SouthEast_Asia_24h.csv"
 
-
 function getData(url) {
     console.log('Started Get Data Function')
   https.get(url, (resp) => {

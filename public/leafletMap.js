@@ -18,7 +18,7 @@ Promise.all([
 
     fetch('/getdata', {
         method:'POST',
-        body: JSON.stringify( { 'query' : "SELECT * FROM nasafirmdata"} ),
+        body: JSON.stringify( { 'query' : "SELECT * FROM nasafirmdata order by acq_date"} ),
         headers : {
             "Content-Type" : "application/json"
         }
