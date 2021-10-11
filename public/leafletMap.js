@@ -3,39 +3,64 @@
 // const mysqlConnection = require("./testconnection");
 
 // const { get } = require("http");
+import React, { useState } from 'react';
 
 let width = 960,
     height = 700,
     centered;
 
+let data_we_want = []
+
 
 // Promise.all first loads these files and will run the function afterwards.
-Promise.all([
-    d3.json("thailand.json"),
-    // d3.csv("coordinates.csv")
-]).then( ([provinceData]) => {
-    let coordinates
+async function main() {
 
-    fetch('/getdata', {
+    // Promise.all([
+    //     d3.json("thailand.json"),
+    //     // d3.csv("coordinates.csv")
+    // ]).then(([provinceData]) => {
+        let coordinates = await dumb_data("SELECT * FROM nasafirmdata order by acq_date")
+
+        // console.log(coordinates)
+        // console.log(data_we_want)
+        console.log(coordinates)
+        createMap({}, coordinates)
+    // })
+}
+main()
+
+async function dumb_data(query) {
+    let json = await fetch('/getdata', {
         method:'POST',
-        body: JSON.stringify( { 'query' : "SELECT * FROM nasafirmdata order by acq_date"} ),
+        body: JSON.stringify( { 'query' : query} ),
         headers : {
             "Content-Type" : "application/json"
         }
-    }).then(res => res.json())
-    .then(json => {
-        console.log(json);
-        console.log(json[0])
-        coordinates = json
-        createMap(provinceData, coordinates)
-
     })
+        .then(res => res.json())
+        .then(json => {
+            return json
+        })
+    console.log(json.json())
+    return json
+}
 
-
-
-
-
-})
+function get_data(query) {
+    fetch('/getdata', {
+        method:'POST',
+        body: JSON.stringify( { 'query' : query} ),
+        headers : {
+            "Content-Type" : "application/json"
+        }
+    })
+        .then(res => res.json())
+        .then(json => {
+            return new Promise(resolve => {
+                console.log(json[0])
+                resolve(json)
+            })
+        })
+}
 
 /**
  * This function is everything from creating the leaflet map to drawing the geoJSON
@@ -43,7 +68,7 @@ Promise.all([
  * @param provinceData the geoJSON file with the province data
  * @param coordinates the csv file with the wildfire data
  */
-function createMap(provinceData, coordinates) {
+function createMap(provinceData) {
 
 
 
