@@ -4,6 +4,9 @@
 
 // const { get } = require("http");
 
+// var fs = require('fs')
+// var NodeXls = require('node-xls');
+
 let width = 960,
     height = 700,
     centered;
@@ -14,8 +17,10 @@ Promise.all([
     d3.json("thailand.json"),
     // d3.csv("coordinates.csv")
 ]).then( ([provinceData]) => {
+    let provinces = provinceData.features
     let coordinates
-
+    console.log("starting damn")
+    //
     fetch('/getdata', {
         method:'POST',
         body: JSON.stringify( { 'query' : "SELECT * FROM nasafirmdata order by acq_date"} ),
@@ -27,7 +32,52 @@ Promise.all([
         console.log(json);
         console.log(json[0])
         coordinates = json
-        createMap(provinceData, coordinates)
+
+        // var tool = new NodeXls();
+        let data = []
+
+        var allGroup = d3.map(coordinates, function(d){return(d.acq_date);}); // This takes the entire column for the date
+        let uniqueDates = allGroup.filter((item, i, ar) => ar.indexOf(item) === i);
+
+        var dataForDate = coordinates.filter(function(d) {
+            return d["acq_date"] === uniqueDates[0]
+        });
+
+        let x;
+        for(x = 222; x < uniqueDates.length; x++) {
+            dataForDate = coordinates.filter(function(d) {
+                return d["acq_date"] === uniqueDates[x]
+            });
+            console.log(uniqueDates[x])
+
+            allCoord = new Array;
+            console.log()
+            provinces.forEach(province => {
+                let count = 0
+                var i;
+                for(i = 0; i < dataForDate.length; i++) {
+                    if(d3.geoContains(province, [dataForDate[i].longitude, dataForDate[i].latitude])) {
+                        count = count + 1
+                    }
+                }
+                data.push({date: uniqueDates[x], name: province.properties.name, count: count})
+            })
+
+        }
+        console.log(data)
+
+
+        var download = document.getElementById('download');
+        download.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(JSON.stringify(data)));
+        download.setAttribute('download', 'filename.csv');
+
+        // var xls = tool.json2xls(data)
+        // fs.writeFileSync('output.xlsx',xls, 'binary');
+
+
+
+
+        // createMap(provinceData, coordinates)
 
     })
 
