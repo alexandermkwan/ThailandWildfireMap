@@ -56,12 +56,12 @@ function createMap(provinceData, coordinates, fire_data) {
     });
 
     var slider = document.getElementById("mySlider"),
-        output = document.getElementById("sliderValue");
+        displayed_date = document.getElementById("displayed_date");
     slider.setAttribute("max", (uniqueDates.length - 1)); // set the number of slider points to be equal to the number of unique dates from the data
-    output.innerHTML = uniqueDates[slider.value]; // Output the slider value to equal the date so the user knows what data is currently being shown
+    displayed_date.innerHTML = "Date: " + uniqueDates[slider.value]; // Oudisplayed_datetput the slider value to equal the date so the user knows what data is currently being shown
     slider.oninput = function () {
         changeDate();
-        output.innerHTML = uniqueDates[slider.value];
+        displayed_date.innerHTML = "Date: " + uniqueDates[slider.value];
     }
 
     // Create/attach the leaflet map to our map div.
@@ -445,18 +445,27 @@ function createMap(provinceData, coordinates, fire_data) {
 
     function drawBarGraph(data, province_name) {
         document.getElementById("bar_graph").innerHTML = ""
+        document.getElementById("bar_graph").style.visibility = "visible"
 
         var svg = d3.select("#bar_graph"),
-            margin = 200,
-            width = svg.attr("width") - margin,
-            height = svg.attr("height") - margin;
+            // margin = 200,
+            width = svg.attr("width"),
+            height = svg.attr("height");
 
 
         var xScale = d3.scaleBand().range ([0, width]).padding(0.4),
             yScale = d3.scaleLinear().range ([height, 0]);
 
         var g = svg.append("g")
-            .attr("transform", "translate(" + 100 + "," + 100 + ")");
+            .attr("transform", "translate(" + 20 + "," + 20 + ")");
+
+        console.log("height height: ", g.get)
+
+        g.append("rect")
+            .attr("transform", "translate(" + -20 + "," + -20 + ")")
+            .attr("width", "110%")
+            .attr("height", "115%")
+            .attr("style", "fill: rgb(166 166 166 / 96%);")
 
         // Step 2
         xScale.domain(data.map(function(d) { return d.date; }));
@@ -484,6 +493,24 @@ function createMap(provinceData, coordinates, fire_data) {
             .attr("y", function(d) { return yScale(d.numWildfires); })
             .attr("width", xScale.bandwidth())
             .attr("height", function(d) { return height - yScale(d.numWildfires); });
+
+        let delete_button = document.createElement("rect")
+        const delete_func = function() {
+            document.getElementById("bar_graph").style.visibility = "hidden"
+        }
+
+        g.append("rect")
+            .attr("height", "30px")
+            .attr("width", "30px")
+            .attr("id", "delete_button_bar")
+            .attr("x", "85%")
+
+        document.getElementById("delete_button_bar").onclick= function() {
+            console.log("clicked")
+                document.getElementById("bar_graph").style.visibility = "hidden"
+            }
+            // .attr("onClick", delete_func)
+
     }
 
 }

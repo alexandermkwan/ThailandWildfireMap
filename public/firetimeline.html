@@ -60,33 +60,60 @@
 
 
 <body>
-    <div id="map" class="center container-fluid">
-      <div class="range-slider">
-        <input class="range-slider__range" type="range" value="0" min="0" max="7" step="1" id="mySlider">
-        <p>Value: <span id="sliderValue"></span></p>
-      </div>
+    <div id="map" class="center container-fluid"></div>
 
-      <style>
-        .range-slider {
-          z-index: -1;
-        }
-        #map {
-          position: absolute;
-          margin: 0px;
-          padding: 0px;
-          height:100%;
-          width: 100%;
+    <p id="displayed_date"></p>
 
-        }
-      </style>
-
-      <p>The name of the province is </p>
-      <p id="provinceName"></p>
+    <div class="range-slider">
+      <input class="range-slider__range" type="range" value="0" min="0" max="7" step="1" id="mySlider">
     </div>
-<!--        <svg id="bar_graph" width="600" height="500"></svg>-->
-<!--        <svg id="wrapper" width="600" height="1000"></svg>-->
+    <p>The name of the province is </p>
+    <p id="provinceName"></p>
+
+    <svg id="bar_graph" width="300" height="250"></svg>
+    <svg id="wrapper" width="600" height="1000"></svg>
 
 
+    <style>
+      #bar_graph {
+        position: absolute;
+        z-index: 5000;
+        right: 150px;
+        overflow: visible;
+        /*pointer-events: none;*/
+        right: 5%;
+        top: 0%;
+      }
+      #displayed_date {
+        position: absolute;
+        z-index: 5000;
+        left: 50px;
+        background: #d7d7d7d9;
+      }
+
+      .range-slider {
+        z-index: 5000;
+        position: absolute;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        bottom: 15px;
+      }
+
+      .range-slider__range {
+        overflow: visible;
+        width: 95%;
+      }
+
+      #map {
+        position: absolute;
+        margin: 0px;
+        padding: 0px;
+        height:100%;
+        width: 100%;
+
+      }
+    </style>
 
 <!--        <table id="wildfireInfo">-->
 <!--          <tr>-->
