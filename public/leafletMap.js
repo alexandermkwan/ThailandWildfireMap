@@ -19,8 +19,18 @@ Promise.all([
         }
     })
         .then(res => res.json())
-        .then(json => {
-            createMap(provinceData, json)
+        .then(coordinate_data => {
+            fetch('/getdata', {
+                method:'POST',
+                body: JSON.stringify( { 'query' : 'SELECT * FROM fires_per_province order by date'} ),
+                headers : {
+                    "Content-Type" : "application/json"
+                }
+            }).then(res => res.json())
+                .then(fire_data => {
+                    createMap(provinceData, coordinate_data, fire_data)
+                })
+
         })
 })
 
@@ -31,11 +41,11 @@ Promise.all([
  * @param provinceData the geoJSON file with the province data
  * @param coordinates the csv file with the wildfire data
  */
-function createMap(provinceData, coordinates) {
+function createMap(provinceData, coordinates, fire_data) {
 
     console.log(coordinates)
 
-    let data_that_we_want = get_data_query('SELECT * FROM ? where acq_date="2021-10-11"')
+    let data_that_we_want = get_coordinate_data_query('SELECT * FROM ? where acq_date="2021-10-11"')
     console.log(data_that_we_want)
 
     var allGroup = d3.map(coordinates, function(d){return(d.acq_date);}); // This takes the entire column for the date
@@ -57,6 +67,12 @@ function createMap(provinceData, coordinates) {
     // Create/attach the leaflet map to our map div.
     var map = new L.Map("map", {center: [13.7, 100.5], zoom: 5, minZoom: 4, maxZoom: 12})
     map.addLayer(new L.TileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"));
+    // document.getElementById("map").setAttribute("position", "absolute")
+    // document.getElementById("map").setAttribute("margin", "0px")
+    // document.getElementById("map").setAttribute("width", "100%")
+    // document.getElementById("map").setAttribute("height", "100%")
+    // document.getElementById("map").setAttribute("padding", "0px")
+    // document.getElementById("map").setAttribute("outline", "none")
 
     map.on("zoom", reset); // When the user zooms in or out, this function should run
     map.on("zoomend", function(){
@@ -108,9 +124,12 @@ function createMap(provinceData, coordinates) {
     // What happens when you clean on the geoJSON feature.
     // e is the mouse event. e.target is the province object
     function zoomToFeature(e) {
-        console.log("Starting to fetch new data")
+        let province_name = e.target.feature.properties.name
+
+        drawBarGraph(get_fire_data_query('SELECT * FROM ? WHERE name="' + province_name + '"'), province_name)
+
         map.flyToBounds(e.target.getBounds());
-        console.log("The name of the province is" + e.target.feature.properties.name);
+        console.log("The name of the province is " + province_name);
 
         // Need to reset and make all the dots yellow again.
         for (var i = 0; i < dataForDate.length; i++) {
@@ -294,8 +313,177 @@ function createMap(provinceData, coordinates) {
         this.stream.point(point.x, point.y);
     }
 
-    function get_data_query(query) {
+    function get_coordinate_data_query(query) {
         return alasql(query,[coordinates]);
+    }
+
+    function get_fire_data_query(query) {
+        return alasql(query,[fire_data]);
+    }
+
+    function drawLineChart(dataset, province_name) {
+        console.log("inside draw line", dataset)
+        console.log("inside draw line", province_name)
+
+        const yAccessor = (d) => d.numWildfires;
+        const dateParser = d3.timeParse("%Y-%m-%d");
+        const xAccessor = (d) => (dateParser(d.date));
+        // const xAccessor = (d) => (d.date);
+        // console.log(dataset[0].date)
+        // console.log(dateParser(dataset[0].date))
+        // console.log(typeof dateParser(dataset[0].date))
+
+        //Check the value of xAccessor function now
+        //console.log(xAccessor(dataset[0]));
+
+        // 2. Create a chart dimension by defining the size of the Wrapper and Margin
+
+        let dimensions = {
+            width: window.innerWidth * 0.6,
+            height: 600,
+            margin: {
+                top: 115,
+                right: 20,
+                bottom: 40,
+                left: 60,
+            },
+        };
+        dimensions.boundedWidth =
+            dimensions.width - dimensions.margin.left - dimensions.margin.right;
+        dimensions.boundedHeight =
+            dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
+
+        // 3. Draw Canvas
+
+        // clear canvas
+        document.getElementById("wrapper").innerHTML = ""
+
+        const wrapper = d3
+            .select("#wrapper")
+            .append("svg")
+            .attr("width", dimensions.width)
+            .attr("height", dimensions.height);
+
+        //Log our new Wrapper Variable to the console to see what it looks like
+        //console.log(wrapper);
+
+        // 4. Create a Bounding Box
+
+        const bounds = wrapper
+            .append("g")
+            .style(
+                "transform",
+                `translate(${dimensions.margin.left}px,${dimensions.margin.top}px)`
+            );
+
+        // 5. Define Domain and Range for Scales
+
+        const yScale = d3
+            .scaleLinear()
+            .domain([0,d3.max(dataset, yAccessor)])
+            .range([dimensions.boundedHeight, 0]);
+
+        // console.log(yScale(100));
+        const referenceBandPlacement = yScale(100);
+        const referenceBand = bounds
+            .append("rect")
+            .attr("x", 0)
+            .attr("width", dimensions.boundedWidth)
+            .attr("y", referenceBandPlacement)
+            .attr("height", dimensions.boundedHeight - referenceBandPlacement)
+            .attr("fill", "#ffece6");
+
+        const xScale = d3
+            .scaleTime()
+            .domain(d3.extent(dataset, xAccessor))
+            .range([0, dimensions.boundedWidth]);
+
+        //6. Convert a datapoints into X and Y value
+
+        const lineGenerator = d3
+            .line()
+            .x((d) => xScale(xAccessor(d)))
+            .y((d) => yScale(yAccessor(d)))
+            .curve(d3.curveBasis);
+
+        // 7. Convert X and Y into Path
+
+        const line = bounds
+            .append("path")
+            .attr("d", lineGenerator(dataset))
+            .attr("fill", "none")
+            .attr("stroke", "Red")
+            .attr("stroke-width", 2);
+
+        //8. Create X axis and Y axis
+        // Generate Y Axis
+
+        const yAxisGenerator = d3.axisLeft().scale(yScale);
+        const yAxis = bounds.append("g").call(yAxisGenerator);
+
+        // Generate X Axis
+        const xAxisGenerator = d3.axisBottom().ticks(dataset.length).scale(xScale);
+        const xAxis = bounds
+            .append("g")
+            .call(xAxisGenerator.tickFormat(d3.timeFormat("%b,%d")))
+            .style("transform", `translateY(${dimensions.boundedHeight}px)`);
+
+        //9. Add a Chart Header
+
+        wrapper
+            .append("g")
+            .style("transform", `translate(${50}px,${15}px)`)
+            .append("text")
+            .attr("class", "title")
+            .attr("x", dimensions.width / 2)
+            .attr("y", dimensions.margin.top / 2)
+            .attr("text-anchor", "middle")
+            .text("Data for " + province_name)
+            .style("font-size", "36px")
+            .style("text-decoration", "underline");
+    }
+
+    function drawBarGraph(data, province_name) {
+        document.getElementById("bar_graph").innerHTML = ""
+
+        var svg = d3.select("#bar_graph"),
+            margin = 200,
+            width = svg.attr("width") - margin,
+            height = svg.attr("height") - margin;
+
+
+        var xScale = d3.scaleBand().range ([0, width]).padding(0.4),
+            yScale = d3.scaleLinear().range ([height, 0]);
+
+        var g = svg.append("g")
+            .attr("transform", "translate(" + 100 + "," + 100 + ")");
+
+        // Step 2
+        xScale.domain(data.map(function(d) { return d.date; }));
+        yScale.domain([0, d3.max(data, function(d) { return d.numWildfires; })]);
+
+        g.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(xScale));
+
+        g.append("g")
+            .call(d3.axisLeft(yScale).tickFormat(function(d){
+                return d;
+            }).ticks(10))
+            .append("text")
+            .attr("y", 6)
+            .attr("dy", "0.71em")
+            .attr("text-anchor", "end")
+            .text("value");
+
+        g.selectAll(".bar")
+            .data(data)
+            .enter().append("rect")
+            .attr("class", "bar")
+            .attr("x", function(d) { return xScale(d.date); })
+            .attr("y", function(d) { return yScale(d.numWildfires); })
+            .attr("width", xScale.bandwidth())
+            .attr("height", function(d) { return height - yScale(d.numWildfires); });
     }
 
 }
