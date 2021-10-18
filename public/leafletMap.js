@@ -2,40 +2,38 @@
 // const require = createRequire(import.meta.url);
 // const mysqlConnection = require("./testconnection");
 
-// const { get } = require("http");
 
 let width = 960,
     height = 700,
     centered;
 
-
 // Promise.all first loads these files and will run the function afterwards.
 Promise.all([
     d3.json("thailand.json"),
-    // d3.csv("coordinates.csv")
-]).then( ([provinceData]) => {
-    let coordinates
-
+]).then(([provinceData]) => {
     fetch('/getdata', {
         method:'POST',
-        body: JSON.stringify( { 'query' : "SELECT * FROM nasafirmdata order by acq_date"} ),
+        body: JSON.stringify( { 'query' : 'SELECT * FROM nasafirmdata order by acq_date'} ),
         headers : {
             "Content-Type" : "application/json"
         }
-    }).then(res => res.json())
-    .then(json => {
-        console.log(json);
-        console.log(json[0])
-        coordinates = json
-        createMap(provinceData, coordinates)
-
     })
+        .then(res => res.json())
+        .then(coordinate_data => {
+            fetch('/getdata', {
+                method:'POST',
+                body: JSON.stringify( { 'query' : 'SELECT * FROM fires_per_province order by date'} ),
+                headers : {
+                    "Content-Type" : "application/json"
+                }
+            }).then(res => res.json())
+                .then(fire_data => {
+                    createMap(provinceData, coordinate_data, fire_data)
+                })
 
-
-
-
-
+        })
 })
+
 
 /**
  * This function is everything from creating the leaflet map to drawing the geoJSON
@@ -43,41 +41,44 @@ Promise.all([
  * @param provinceData the geoJSON file with the province data
  * @param coordinates the csv file with the wildfire data
  */
-function createMap(provinceData, coordinates) {
+function createMap(provinceData, coordinates, fire_data) {
 
+    console.log(coordinates)
 
+    let data_that_we_want = get_coordinate_data_query('SELECT * FROM ? where acq_date="2021-10-11"')
+    console.log(data_that_we_want)
 
     var allGroup = d3.map(coordinates, function(d){return(d.acq_date);}); // This takes the entire column for the date
-
-    // uniqueDates is an array of the unique dates in coordinates. It is used to determine the max value of the slider
-    // As well as indexing through it to filter for different dates from the coordinates.csv data
     let uniqueDates = allGroup.filter((item, i, ar) => ar.indexOf(item) === i);
-
-    // dataForDate returns the rows from the csv that have the desired date the slider is selecting. We start with the first date
+    console.log(uniqueDates)
     var dataForDate = coordinates.filter(function(d) {
         return d["acq_date"] === uniqueDates[0]
     });
 
-
-    // Get the slider and its output div from the HTML
     var slider = document.getElementById("mySlider"),
-        output = document.getElementById("sliderValue");
-
+        displayed_date = document.getElementById("displayed_date");
     slider.setAttribute("max", (uniqueDates.length - 1)); // set the number of slider points to be equal to the number of unique dates from the data
-
-    output.innerHTML = uniqueDates[slider.value]; // Output the slider value to equal the date so the user knows what data is currently being shown
-
-    // This updates the date that is displayed to the user every time the user changes the slider value.
-    // It also runs changeDate() which updates the wildfire data points on the map.
+    displayed_date.innerHTML = "Date: " + uniqueDates[slider.value]; // Oudisplayed_datetput the slider value to equal the date so the user knows what data is currently being shown
     slider.oninput = function () {
         changeDate();
-        output.innerHTML = uniqueDates[slider.value];
+        displayed_date.innerHTML = "Date: " + uniqueDates[slider.value];
     }
 
     // Create/attach the leaflet map to our map div.
     var map = new L.Map("map", {center: [13.7, 100.5], zoom: 5, minZoom: 4, maxZoom: 12})
-        .addLayer(new L.TileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"));
+    map.addLayer(new L.TileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"));
+    // document.getElementById("map").setAttribute("position", "absolute")
+    // document.getElementById("map").setAttribute("margin", "0px")
+    // document.getElementById("map").setAttribute("width", "100%")
+    // document.getElementById("map").setAttribute("height", "100%")
+    // document.getElementById("map").setAttribute("padding", "0px")
+    // document.getElementById("map").setAttribute("outline", "none")
 
+    map.on("zoom", reset); // When the user zooms in or out, this function should run
+    map.on("zoomend", function(){
+        geojson.removeFrom(map);
+        addProvinces();
+    });
 
     // Add provinces from geoJSON file.
     // Create a new array and parse through the provinceData file to get the geoJSON object itself and add it to the array
@@ -88,8 +89,6 @@ function createMap(provinceData, coordinates) {
     }
 
     var geojson;
-
-    // Adds the provinces to the leaflet map
     function addProvinces() {
         geojson = L.geoJSON(provinces, {
             style: style,
@@ -125,8 +124,12 @@ function createMap(provinceData, coordinates) {
     // What happens when you clean on the geoJSON feature.
     // e is the mouse event. e.target is the province object
     function zoomToFeature(e) {
+        let province_name = e.target.feature.properties.name
+
+        drawBarGraph(get_fire_data_query('SELECT * FROM ? WHERE name="' + province_name + '"'), province_name)
+
         map.flyToBounds(e.target.getBounds());
-        console.log("The name of the province is" + e.target.feature.properties.name);
+        console.log("The name of the province is " + province_name);
 
         // Need to reset and make all the dots yellow again.
         for (var i = 0; i < dataForDate.length; i++) {
@@ -151,7 +154,6 @@ function createMap(provinceData, coordinates) {
             console.log(allCoord);
         }
     }
-    var allCoord = new Array; // An array for all the coordinates inside the province
 
     // Finds the overlayPane div and places an svg layer inside that has a class name of "circle-layer"
     // There is also a g div in the svg with a name of "inner-CL"
@@ -160,12 +162,9 @@ function createMap(provinceData, coordinates) {
     var svg1 = d3.select(map.getPanes().overlayPane).append("svg").attr("class", "circle-layer"),
         g1 = svg1.append("g").attr("class", "inner-CL");
 
-    // This takes the path and fits the projection on it using the function below
     var transform = d3.geoTransform({point: projectPoint}),
         path = d3.geoPath().projection(transform);
 
-
-    // Creates all the circle elements in the circle-layer div based on the date selected from dataForDate
     g1.selectAll("circle")
         .data(dataForDate)
         .enter().append("circle");
@@ -225,10 +224,7 @@ function createMap(provinceData, coordinates) {
         .attr("pointer-events", "none"); // This allows us to click through the svg layer so that we can click on the dots
 
 
-    /**
-     * Handles the slider moving position and updates the map so that the data displayed corresponds to the correct date
-     * @param e is a mouse click event
-     */
+
     function changeDate(e) {
         console.log("slider value: " + document.getElementById("mySlider").value);
 
@@ -285,16 +281,6 @@ function createMap(provinceData, coordinates) {
         }
     }
 
-    map.on("zoom", reset); // When the user zooms in or out, this function should run
-
-    // After the map finished zooming run this function. All it does is remove the geoJSON objects and adds them back again
-    // This is needed because we have different styling depending on the zoom level. When you zoom in far enough,
-    // the border for the provinces dissapear as they are not as detailed as the ones included in the leaflet map
-    map.on("zoomend", function(){
-        geojson.removeFrom(map);
-        addProvinces();
-    });
-
     reset();
 
     /**
@@ -302,8 +288,7 @@ function createMap(provinceData, coordinates) {
      * needs to recalculate how big it is. The wildfire data also needs to recalculate where to draw itself.
      */
     function reset() {
-        console.log("Starting reset");
-        var bounds = path.bounds(provinceData),
+        let bounds = path.bounds(provinceData),
             topLeft = bounds[0],
             bottomRight = bounds[1];
 
@@ -328,4 +313,205 @@ function createMap(provinceData, coordinates) {
         this.stream.point(point.x, point.y);
     }
 
+    function get_coordinate_data_query(query) {
+        return alasql(query,[coordinates]);
+    }
+
+    function get_fire_data_query(query) {
+        return alasql(query,[fire_data]);
+    }
+
+    function drawLineChart(dataset, province_name) {
+        console.log("inside draw line", dataset)
+        console.log("inside draw line", province_name)
+
+        const yAccessor = (d) => d.numWildfires;
+        const dateParser = d3.timeParse("%Y-%m-%d");
+        const xAccessor = (d) => (dateParser(d.date));
+        // const xAccessor = (d) => (d.date);
+        // console.log(dataset[0].date)
+        // console.log(dateParser(dataset[0].date))
+        // console.log(typeof dateParser(dataset[0].date))
+
+        //Check the value of xAccessor function now
+        //console.log(xAccessor(dataset[0]));
+
+        // 2. Create a chart dimension by defining the size of the Wrapper and Margin
+
+        let dimensions = {
+            width: window.innerWidth * 0.6,
+            height: 600,
+            margin: {
+                top: 115,
+                right: 20,
+                bottom: 40,
+                left: 60,
+            },
+        };
+        dimensions.boundedWidth =
+            dimensions.width - dimensions.margin.left - dimensions.margin.right;
+        dimensions.boundedHeight =
+            dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
+
+        // 3. Draw Canvas
+
+        // clear canvas
+        document.getElementById("wrapper").innerHTML = ""
+
+        const wrapper = d3
+            .select("#wrapper")
+            .append("svg")
+            .attr("width", dimensions.width)
+            .attr("height", dimensions.height);
+
+        //Log our new Wrapper Variable to the console to see what it looks like
+        //console.log(wrapper);
+
+        // 4. Create a Bounding Box
+
+        const bounds = wrapper
+            .append("g")
+            .style(
+                "transform",
+                `translate(${dimensions.margin.left}px,${dimensions.margin.top}px)`
+            );
+
+        // 5. Define Domain and Range for Scales
+
+        const yScale = d3
+            .scaleLinear()
+            .domain([0,d3.max(dataset, yAccessor)])
+            .range([dimensions.boundedHeight, 0]);
+
+        // console.log(yScale(100));
+        const referenceBandPlacement = yScale(100);
+        const referenceBand = bounds
+            .append("rect")
+            .attr("x", 0)
+            .attr("width", dimensions.boundedWidth)
+            .attr("y", referenceBandPlacement)
+            .attr("height", dimensions.boundedHeight - referenceBandPlacement)
+            .attr("fill", "#ffece6");
+
+        const xScale = d3
+            .scaleTime()
+            .domain(d3.extent(dataset, xAccessor))
+            .range([0, dimensions.boundedWidth]);
+
+        //6. Convert a datapoints into X and Y value
+
+        const lineGenerator = d3
+            .line()
+            .x((d) => xScale(xAccessor(d)))
+            .y((d) => yScale(yAccessor(d)))
+            .curve(d3.curveBasis);
+
+        // 7. Convert X and Y into Path
+
+        const line = bounds
+            .append("path")
+            .attr("d", lineGenerator(dataset))
+            .attr("fill", "none")
+            .attr("stroke", "Red")
+            .attr("stroke-width", 2);
+
+        //8. Create X axis and Y axis
+        // Generate Y Axis
+
+        const yAxisGenerator = d3.axisLeft().scale(yScale);
+        const yAxis = bounds.append("g").call(yAxisGenerator);
+
+        // Generate X Axis
+        const xAxisGenerator = d3.axisBottom().ticks(dataset.length).scale(xScale);
+        const xAxis = bounds
+            .append("g")
+            .call(xAxisGenerator.tickFormat(d3.timeFormat("%b,%d")))
+            .style("transform", `translateY(${dimensions.boundedHeight}px)`);
+
+        //9. Add a Chart Header
+
+        wrapper
+            .append("g")
+            .style("transform", `translate(${50}px,${15}px)`)
+            .append("text")
+            .attr("class", "title")
+            .attr("x", dimensions.width / 2)
+            .attr("y", dimensions.margin.top / 2)
+            .attr("text-anchor", "middle")
+            .text("Data for " + province_name)
+            .style("font-size", "36px")
+            .style("text-decoration", "underline");
+    }
+
+    function drawBarGraph(data, province_name) {
+        document.getElementById("bar_graph").innerHTML = ""
+        document.getElementById("bar_graph").style.visibility = "visible"
+
+        var svg = d3.select("#bar_graph"),
+            // margin = 200,
+            width = svg.attr("width"),
+            height = svg.attr("height");
+
+
+        var xScale = d3.scaleBand().range ([0, width]).padding(0.4),
+            yScale = d3.scaleLinear().range ([height, 0]);
+
+        var g = svg.append("g")
+            .attr("transform", "translate(" + 20 + "," + 20 + ")");
+
+        console.log("height height: ", g.get)
+
+        g.append("rect")
+            .attr("transform", "translate(" + -20 + "," + -20 + ")")
+            .attr("width", "110%")
+            .attr("height", "115%")
+            .attr("style", "fill: rgb(166 166 166 / 96%);")
+
+        // Step 2
+        xScale.domain(data.map(function(d) { return d.date; }));
+        yScale.domain([0, d3.max(data, function(d) { return d.numWildfires; })]);
+
+        g.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(xScale));
+
+        g.append("g")
+            .call(d3.axisLeft(yScale).tickFormat(function(d){
+                return d;
+            }).ticks(10))
+            .append("text")
+            .attr("y", 6)
+            .attr("dy", "0.71em")
+            .attr("text-anchor", "end")
+            .text("value");
+
+        g.selectAll(".bar")
+            .data(data)
+            .enter().append("rect")
+            .attr("class", "bar")
+            .attr("x", function(d) { return xScale(d.date); })
+            .attr("y", function(d) { return yScale(d.numWildfires); })
+            .attr("width", xScale.bandwidth())
+            .attr("height", function(d) { return height - yScale(d.numWildfires); });
+
+        let delete_button = document.createElement("rect")
+        const delete_func = function() {
+            document.getElementById("bar_graph").style.visibility = "hidden"
+        }
+
+        g.append("rect")
+            .attr("height", "30px")
+            .attr("width", "30px")
+            .attr("id", "delete_button_bar")
+            .attr("x", "85%")
+
+        document.getElementById("delete_button_bar").onclick= function() {
+            console.log("clicked")
+                document.getElementById("bar_graph").style.visibility = "hidden"
+            }
+            // .attr("onClick", delete_func)
+
+    }
+
 }
+
