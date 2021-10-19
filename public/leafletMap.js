@@ -58,10 +58,10 @@ function createMap(provinceData, coordinates, fire_data) {
     var slider = document.getElementById("mySlider"),
         displayed_date = document.getElementById("displayed_date");
     slider.setAttribute("max", (uniqueDates.length - 1)); // set the number of slider points to be equal to the number of unique dates from the data
-    displayed_date.innerHTML = "Date: " + uniqueDates[slider.value]; // Oudisplayed_datetput the slider value to equal the date so the user knows what data is currently being shown
+    displayed_date.innerHTML = "Today's Date: " + uniqueDates[slider.value]; // Oudisplayed_datetput the slider value to equal the date so the user knows what data is currently being shown
     slider.oninput = function () {
         changeDate();
-        displayed_date.innerHTML = "Date: " + uniqueDates[slider.value];
+        displayed_date.innerHTML = "Today's Date: " + uniqueDates[slider.value];
     }
 
     // Create/attach the leaflet map to our map div.
@@ -513,5 +513,38 @@ function createMap(provinceData, coordinates, fire_data) {
 
     }
 
-}
+    function runningAverageCalcForProvince(province) {
+        function get_7_day_average(day1, day2, day3, day4, day5, day6, day7) {
+            return (day1 + day2 + day3 + day4 + day5 + day6 + day7)/7
+        }
+        let fireData = get_fire_data_query(`SELECT * FROM ? WHERE name="${province}"`);
+        let arr1 = [];
+        let averages = []
+        let i;
+        for(i = 6; i < fireData.length; i++) {
+            let average = get_7_day_average(fireData[i-6].numWildfires, fireData[i-5].numWildfires, fireData[i-4].numWildfires, fireData[i-3].numWildfires, fireData[i-2].numWildfires, fireData[i-1].numWildfires, fireData[1].numWildfires)
+            let tot = fireData[i].numWildfires - average
+            averages.push({date: fireData[i].date, value: tot}) // if positive, higher than usual. If negative, lower than usual
+        }
+        console.log('logging averages');
+        console.log(averages);
 
+        // gets array, but we dont know the date.
+
+    }
+    
+    runningAverageCalcForProvince("Mae Hong Son");
+
+    document.getElementById("showTrend").onclick = () => {
+        console.log("showing trend");
+    }
+
+    document.getElementById("affectedRegions").onclick = () => {
+        console.log("Showing most affected regions");
+    }
+
+    document.getElementById("showToday").onclick = () => {
+        console.log("Showing Today");
+    }
+
+}

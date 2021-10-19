@@ -60,9 +60,14 @@
 
 
 <body>
+    
     <div id="map" class="center container-fluid"></div>
-
-    <p id="displayed_date"></p>
+    <div class="topnav" id="myTopnav">
+      <a href="#home" id="showTrend" onclick='trendFunction();' class="active">Show Trend</a>
+      <a href="#news" id="affectedRegions">Most Affected Regions</a>
+      <a href="#contact" id="showToday">Show Today</a>
+      <h5 id="displayed_date"></h5>
+    </div>
 
     <div class="range-slider">
       <input class="range-slider__range" type="range" value="0" min="0" max="7" step="1" id="mySlider">
@@ -75,6 +80,34 @@
 
 
     <style>
+      .topnav {
+        overflow: hidden;
+        background-color: #333;
+        z-index: 6000;
+        position: absolute;
+        width: 50%;
+        margin-left: 25%;
+      }
+
+      .topnav a {
+        float: left;
+        display: block;
+        color: #f2f2f2;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 17px;
+      }
+
+      .topnav a:hover {
+        background-color: #ddd;
+        color: black;
+      }
+
+      .topnav a.active {
+        background-color: #04AA6D;
+        color: white;
+      }
       #bar_graph {
         position: absolute;
         z-index: 5000;
@@ -87,8 +120,9 @@
       #displayed_date {
         position: absolute;
         z-index: 5000;
-        left: 50px;
         background: #d7d7d7d9;
+        right: 0;
+        float: right;
       }
 
       .range-slider {
