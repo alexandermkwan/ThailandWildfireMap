@@ -80,13 +80,31 @@
 
 
     <style>
+        .firstSVGUnderWrapper {
+
+        }
+        #wrapper {
+            position: absolute;
+            z-index: 5000;
+            background: #e1e1e1d6;
+            left: 0px;
+            right: 0px;
+            margin: auto;
+            height: 500px;
+            top: 10%;
+        }
+
       .topnav {
-        overflow: hidden;
-        background-color: #333;
-        z-index: 6000;
-        position: absolute;
-        width: 50%;
-        margin-left: 25%;
+          overflow: hidden;
+          background-color: #333;
+          z-index: 6000;
+          position: absolute;
+          width: 75%;
+          text-align: center;
+          left: 12.5%;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          align-items: center;
       }
 
       .topnav a {
@@ -94,7 +112,7 @@
         display: block;
         color: #f2f2f2;
         text-align: center;
-        padding: 14px 16px;
+        padding: 7px 7px;
         text-decoration: none;
         font-size: 17px;
       }
@@ -115,14 +133,16 @@
         overflow: visible;
         /*pointer-events: none;*/
         right: 5%;
-        top: 0%;
       }
       #displayed_date {
-        position: absolute;
-        z-index: 5000;
-        background: #d7d7d7d9;
-        right: 0;
-        float: right;
+        /*position: absolute;*/
+        /*z-index: 5000;*/
+        color: white;
+          margin: 0;
+          font-size: 17px;
+          padding: 7px 7px;
+        /*right: 0;*/
+        /*float: right;*/
       }
 
       .range-slider {
