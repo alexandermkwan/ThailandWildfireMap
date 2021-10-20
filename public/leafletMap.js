@@ -2,6 +2,7 @@
 // const require = createRequire(import.meta.url);
 // const mysqlConnection = require("./testconnection");
 
+document.getElementById("wrapper").style.visibility = "hidden"
 
 let width = 960,
     height = 700,
@@ -322,8 +323,8 @@ function createMap(provinceData, coordinates, fire_data) {
     }
 
     function drawLineChart(dataset, province_name) {
-        console.log("inside draw line", dataset)
-        console.log("inside draw line", province_name)
+        was_draw_line_created = true
+        document.getElementById("wrapper").style.visibility = "visible"
 
         const yAccessor = (d) => d.numWildfires;
         const dateParser = d3.timeParse("%Y-%m-%d");
@@ -337,15 +338,15 @@ function createMap(provinceData, coordinates, fire_data) {
         //console.log(xAccessor(dataset[0]));
 
         // 2. Create a chart dimension by defining the size of the Wrapper and Margin
-
+        // console.log("wiindow.innerwidth*0.6", window.innerWidth * 0.6)
         let dimensions = {
-            width: window.innerWidth * 0.6,
+            width: 579.6,//window.innerWidth * 0.6,
             height: 600,
             margin: {
-                top: 115,
-                right: 20,
-                bottom: 40,
-                left: 60,
+                top: 25,
+                right: 25,
+                bottom: 25,
+                left: 25,
             },
         };
         dimensions.boundedWidth =
@@ -354,21 +355,29 @@ function createMap(provinceData, coordinates, fire_data) {
             dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
 
         // 3. Draw Canvas
-
+        console.log("before selecting wrapper")
         // clear canvas
         document.getElementById("wrapper").innerHTML = ""
 
         const wrapper = d3
             .select("#wrapper")
             .append("svg")
-            .attr("width", dimensions.width)
-            .attr("height", dimensions.height);
+            .attr("x", "20px") // was 0
+            .attr("y", "0px")
+            .attr("width", "500") // was dimensions.width
+            .attr("height", "650") // was dimendsion.height
+            .attr("viewBox", "0 0 500 800");
+        //             x: 0px;
+        //             y:0px;
+        //             width: 500px;
+        //             height:650px;
+        //             viewBox:"0 0 500 800";
 
         //Log our new Wrapper Variable to the console to see what it looks like
         //console.log(wrapper);
 
         // 4. Create a Bounding Box
-
+        console.log("before creating bounds")
         const bounds = wrapper
             .append("g")
             .style(
@@ -383,8 +392,9 @@ function createMap(provinceData, coordinates, fire_data) {
             .domain([0,d3.max(dataset, yAccessor)])
             .range([dimensions.boundedHeight, 0]);
 
-        // console.log(yScale(100));
-        const referenceBandPlacement = yScale(100);
+        console.log("creating rect")
+        console.log(yScale(100))
+        const referenceBandPlacement = yScale(d3.max(dataset, yAccessor));
         const referenceBand = bounds
             .append("rect")
             .attr("x", 0)
@@ -392,7 +402,7 @@ function createMap(provinceData, coordinates, fire_data) {
             .attr("y", referenceBandPlacement)
             .attr("height", dimensions.boundedHeight - referenceBandPlacement)
             .attr("fill", "#ffece6");
-
+        console.log("rect created")
         const xScale = d3
             .scaleTime()
             .domain(d3.extent(dataset, xAccessor))
@@ -419,13 +429,28 @@ function createMap(provinceData, coordinates, fire_data) {
         // Generate Y Axis
 
         const yAxisGenerator = d3.axisLeft().scale(yScale);
-        const yAxis = bounds.append("g").call(yAxisGenerator);
+        const yAxis = bounds.append("g").call(yAxisGenerator)
+            .style("height", "400px");
 
         // Generate X Axis
-        const xAxisGenerator = d3.axisBottom().ticks(dataset.length).scale(xScale);
+        // need to count num months TODO how do we do this
+
+        function monthDiff(startDate, endDate) {
+            startDate = new Date(startDate);
+            endDate = new Date(endDate);
+            return Math.max(
+                (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+                endDate.getMonth() -
+                startDate.getMonth(),
+                0)
+        }
+
+        let num_months = monthDiff(dataset[0].date, dataset[dataset.length-1].date)
+
+        const xAxisGenerator = d3.axisBottom().ticks(num_months).scale(xScale);
         const xAxis = bounds
             .append("g")
-            .call(xAxisGenerator.tickFormat(d3.timeFormat("%b,%d")))
+            .call(xAxisGenerator.tickFormat(d3.timeFormat("%b")))
             .style("transform", `translateY(${dimensions.boundedHeight}px)`);
 
         //9. Add a Chart Header
@@ -441,6 +466,17 @@ function createMap(provinceData, coordinates, fire_data) {
             .text("Data for " + province_name)
             .style("font-size", "36px")
             .style("text-decoration", "underline");
+
+        d3.select("#wrapper").append("rect")
+            .attr("height", "30px")
+            .attr("width", "30px")
+            .attr("id", "delete_button_graph")
+            .attr("x", "85%")
+
+        document.getElementById("delete_button_graph").onclick= function() {
+            console.log("clicked")
+            document.getElementById("wrapper").style.visibility = "hidden"
+        }
     }
 
     function drawBarGraph(data, province_name) {
@@ -507,8 +543,8 @@ function createMap(provinceData, coordinates, fire_data) {
 
         document.getElementById("delete_button_bar").onclick= function() {
             console.log("clicked")
-                document.getElementById("bar_graph").style.visibility = "hidden"
-            }
+            document.getElementById("bar_graph").style.visibility = "hidden"
+        }
             // .attr("onClick", delete_func)
 
     }
@@ -526,17 +562,43 @@ function createMap(provinceData, coordinates, fire_data) {
             let tot = fireData[i].numWildfires - average
             averages.push({date: fireData[i].date, value: tot}) // if positive, higher than usual. If negative, lower than usual
         }
-        console.log('logging averages');
-        console.log(averages);
-
-        // gets array, but we dont know the date.
-
+        return averages
     }
+
+    function runningAverageCalcForThailand(fireData) {
+        function get_7_day_average(day1, day2, day3, day4, day5, day6, day7) { return (day1 + day2 + day3 + day4 + day5 + day6 + day7)/7 }
+        let averages = []
+        for(let i = 6; i < fireData.length; i++) {
+            let average = get_7_day_average(fireData[i-6].numWildfires, fireData[i-5].numWildfires, fireData[i-4].numWildfires, fireData[i-3].numWildfires, fireData[i-2].numWildfires, fireData[i-1].numWildfires, fireData[1].numWildfires)
+            averages.push({date: fireData[i].date, numWildfires: average})
+        }
+        return averages
+    }
+
+
+
+
     
     runningAverageCalcForProvince("Mae Hong Son");
 
+    let was_draw_line_created = false
+
     document.getElementById("showTrend").onclick = () => {
-        console.log("showing trend");
+        if(was_draw_line_created) {
+            if(document.getElementById("wrapper").style.visibility == "hidden") {
+                document.getElementById("wrapper").style.visibility = "visible"
+            }
+            else {
+                document.getElementById("wrapper").style.visibility = "hidden"
+
+            }
+        }
+        else {
+            let thailand_sum = get_fire_data_query('SELECT date, sum(numWildfires) as numWildfires FROM ? group by date')
+            let thailand_avg = runningAverageCalcForThailand(thailand_sum)
+            drawLineChart(thailand_avg, "Thailand")
+        }
+
     }
 
     document.getElementById("affectedRegions").onclick = () => {
