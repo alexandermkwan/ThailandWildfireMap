@@ -43,11 +43,7 @@ Promise.all([
  * @param coordinates the csv file with the wildfire data
  */
 function createMap(provinceData, coordinates, fire_data) {
-
     console.log(coordinates)
-
-    let data_that_we_want = get_coordinate_data_query('SELECT * FROM ? where acq_date="2021-10-11"')
-    console.log(data_that_we_want)
 
     var allGroup = d3.map(coordinates, function(d){return(d.acq_date);}); // This takes the entire column for the date
     let uniqueDates = allGroup.filter((item, i, ar) => ar.indexOf(item) === i);
@@ -77,7 +73,9 @@ function createMap(provinceData, coordinates, fire_data) {
 
     map.on("zoom", reset); // When the user zooms in or out, this function should run
     map.on("zoomend", function(){
-        geojson.removeFrom(map);
+        for(let i = 0; i < geojson.length; i++) {
+            geojson[i].removeFrom(map);
+        }
         addProvinces();
     });
 
@@ -89,18 +87,21 @@ function createMap(provinceData, coordinates, fire_data) {
         provinces.push(provinceData.features[j]);
     }
 
-    var geojson;
+    var geojson = [];
     function addProvinces() {
-        geojson = L.geoJSON(provinces, {
-            style: style,
-            onEachFeature: onEachFeature
-        }).addTo(map);
+        provinces.forEach(province => {
+            let item = L.geoJSON(province, {
+                style: style(province.properties.name),
+                onEachFeature: onEachFeature
+            }).addTo(map);
+            geojson.push(item)
+        })
     }
 
     addProvinces();
 
     // Styles the geoJSON provinces
-    function style(feature) {
+    function style(province_name) {
         if (map.getZoom() > 9) {
             return {
                 "color": "blue",
@@ -108,10 +109,22 @@ function createMap(provinceData, coordinates, fire_data) {
                 "fillOpacity": "0"
             }
         } else {
-            return {
-                "color": "blue",
-                "fillOpacity": "0"
+            // If avg is positive, make fillOpacity = 0.2, otherwise fillOpacity = 0
+            let averages_array = runningAverageCalcForProvince(province_name)
+            if(averages_array[document.getElementById("mySlider").value].value > 0) {
+                return {
+                    "color": "red",
+                    "fillOpacity": "0.2"
+                }
             }
+            else {
+                return {
+                    "color": "red",
+                    "fillOpacity": "0"
+                }
+            }
+
+
         }
     }
 
@@ -227,7 +240,12 @@ function createMap(provinceData, coordinates, fire_data) {
 
 
     function changeDate(e) {
-        console.log("slider value: " + document.getElementById("mySlider").value);
+        for(let i = 0; i < geojson.length; i++) {
+            geojson[i].removeFrom(map);
+        }
+        addProvinces();
+
+        // console.log("slider value: " + document.getElementById("mySlider").value);
 
         // Update the desired date
         dataForDate = coordinates.filter(function(d) {
@@ -554,9 +572,11 @@ function createMap(provinceData, coordinates, fire_data) {
             return (day1 + day2 + day3 + day4 + day5 + day6 + day7)/7
         }
         let fireData = get_fire_data_query(`SELECT * FROM ? WHERE name="${province}"`);
-        let arr1 = [];
         let averages = []
         let i;
+        for(i = 0; i < 7; i++) {
+            averages.push( {date: fireData[i].date, value: -999} )
+        }
         for(i = 6; i < fireData.length; i++) {
             let average = get_7_day_average(fireData[i-6].numWildfires, fireData[i-5].numWildfires, fireData[i-4].numWildfires, fireData[i-3].numWildfires, fireData[i-2].numWildfires, fireData[i-1].numWildfires, fireData[1].numWildfires)
             let tot = fireData[i].numWildfires - average
