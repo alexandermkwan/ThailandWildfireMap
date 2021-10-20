@@ -59,7 +59,7 @@ function createMap(provinceData, coordinates, fire_data) {
     var slider = document.getElementById("mySlider"),
         displayed_date = document.getElementById("displayed_date");
     slider.setAttribute("max", (uniqueDates.length - 1)); // set the number of slider points to be equal to the number of unique dates from the data
-    displayed_date.innerHTML = "Today's Date: " + uniqueDates[slider.value]; // Oudisplayed_datetput the slider value to equal the date so the user knows what data is currently being shown
+    displayed_date.innerHTML = "Date: " + uniqueDates[slider.value]; // Oudisplayed_datetput the slider value to equal the date so the user knows what data is currently being shown
     slider.oninput = function () {
         changeDate();
         displayed_date.innerHTML = "Today's Date: " + uniqueDates[slider.value];
