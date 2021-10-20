@@ -77,9 +77,56 @@
 
     <svg id="bar_graph" width="300" height="250"></svg>
     <svg id="wrapper" width="600" height="1000"></svg>
+    <div id="legend_container">
+      <div id="legend_container_title">Legend</div>
+      <div id="legend_container_boxes">
+        <div id="legend_container_red"></div>
+        <span style="font-weight: bold; position: relative; bottom: 10px; margin-right: 65px">Unusually High Activity</span>
+        <div id="legend_container_circle"></div>
+        <span style="font-weight: bold; position: relative; bottom: 10px;">New Fire Detected</span>
+      </div>
+      
+      </div>
+    </div>
 
 
     <style>
+        #legend_container {
+          width: 300px;
+          height: 150px;
+          position: absolute;
+          bottom: 56px;
+          left: 15px;
+          background-color: gray;
+          z-index: 6000;
+        }
+
+        #legend_container_red {
+          width: 30px;
+          height: 30px;
+          background-color: red;
+          opacity: 0.7;
+          margin-left: 10px;
+          display: inline-block;
+        }
+        #legend_container_circle {
+          background-color: rgb(255, 208, 97);
+          border-radius: 40px;
+          border: 1px solid black;
+          width: 25px;
+          height: 25px;
+          margin-left: 13px;
+          display: inline-block;
+          margin-right: 5px;
+        }
+        #legend_container_boxes {
+          margin-top: 10px;
+        }
+        #legend_container_title {
+          text-align: center;
+          font-size: 20px;
+          font-weight: bold;
+        }
         .firstSVGUnderWrapper {
 
         }
