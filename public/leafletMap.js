@@ -626,7 +626,64 @@ function createMap(provinceData, coordinates, fire_data) {
     }
 
     document.getElementById("showToday").onclick = () => {
-        console.log("Showing Today");
+        for(let i = 0; i < geojson.length; i++) {
+            geojson[i].removeFrom(map);
+        }
+        addProvinces();
+
+        // console.log("slider value: " + document.getElementById("mySlider").value);
+
+        // Update the desired date
+        dataForDate = coordinates.filter(function(d) {
+            return d["acq_date"] === uniqueDates[uniqueDates.length - 1]
+        });
+
+        const node = document.getElementById("inner-CL"); // find the inner-CL div
+        node.innerHTML = ""; // delete all the circle elements that were in the inner-CL div
+
+        g1.selectAll("circle")
+            .data(dataForDate)
+            .enter().append("circle"); // Like before, this created the correct number of circle elements in this layer depending on the date
+
+        // Selector. Selects all the circle elements in the circle-layer div
+        allCircles = document.querySelectorAll(".inner-CL > circle");
+
+        // Sets all the attributes for each circle element
+        for(var i = 0; i < dataForDate.length; i++) {
+            if (dataForDate[i].latitude > 4 && dataForDate[i].latitude < 21) {
+                if (dataForDate[i].longitude > 95 && dataForDate[i].longitude < 107) {
+                    allCircles[i].classList.add(i);
+                    allCircles[i].setAttribute("r", 4)
+                    allCircles[i].setAttribute("stroke-width", 1);
+                    allCircles[i].setAttribute("stroke", "#4F442B");
+                    allCircles[i].setAttribute("fill", "#FFD061");
+                    allCircles[i].setAttribute("cx", map.latLngToLayerPoint(new L.LatLng(dataForDate[i].latitude, dataForDate[i].longitude)).x);
+                    allCircles[i].setAttribute("cy", map.latLngToLayerPoint(new L.LatLng(dataForDate[i].latitude, dataForDate[i].longitude)).y);
+                    allCircles[i].onclick = function () {
+                        wildfireID = this.className.animVal
+
+                        console.log(wildfireID)
+                        console.log(dataForDate[wildfireID])
+
+                        document.querySelector('#acqDate').innerHTML = dataForDate[wildfireID].acq_date
+                        document.querySelector('#acqTime').innerHTML = dataForDate[wildfireID].acq_time
+                        document.querySelector('#latitude').innerHTML = dataForDate[wildfireID].latitude
+                        document.querySelector('#longitude').innerHTML = dataForDate[wildfireID].longitude
+                        document.querySelector('#dOrN').innerHTML = dataForDate[wildfireID].daynight
+                        document.querySelector('#satellite').innerHTML = dataForDate[wildfireID].satellite
+                        document.querySelector('#version').innerHTML = dataForDate[wildfireID].version
+                    };
+
+                    allCircles[i].onmouseover = function () {
+                        this.setAttribute('fill', '#F50D00')
+                    }
+                    allCircles[i].onmouseout = function () {
+                        this.setAttribute('fill', '#FFD061')
+                    }
+
+                }
+            }
+        }
     }
 
 }
