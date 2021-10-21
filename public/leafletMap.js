@@ -616,44 +616,15 @@ function createMap(provinceData, coordinates, fire_data) {
     }
 
     document.getElementById("affectedRegions").onclick = () => {
-        Promise.all([
-            d3.json("thailand.json"),
-            d3.csv("coordinates.csv")
-        ]).then( ([provinceData ,coordinates]) => {
-            var provincesWithFireCount = []
-            var provinces = new Array;
-            var i;
-            for (i = 0; i < provinceData.features.length; i++) {
-                provinces.push(provinceData.features[i]);
-            }
-
-            let j;
-            for (j = 0; j < provinceData.features.length; j++) {
-                var count = countFiresInsideProvince(provinces[j]);
-                provincesWithFireCount.push({"name": provinces[j].properties.name, "count": count});
-            }
+            document.getElementById('my_dataviz').innerHTML ="";
+            var date = uniqueDates[slider.value];
+            let fireData = get_fire_data_query(`SELECT * FROM ? WHERE date ='${date}'`)
+            var provincesWithFireCount = fireData
 
             // sort by value
             provincesWithFireCount.sort(function (a, b) {
-                return a.count - b.count;
+                return a.numWildfires - b.numWildfires;
             });
-
-            // This function finds all the dots within the feature returns the count of dots
-            function countFiresInsideProvince(feature) {
-
-                var fireCount = 0;
-                var dataForDate = coordinates.filter(function (d) {
-                    return d["acq_date"] === "2021-01-28"
-                });
-                allCoord = new Array;
-                var i;
-                for (i = 0; i < dataForDate.length; i++) {
-                    if (d3.geoContains(feature, [dataForDate[i].longitude, dataForDate[i].latitude])) {
-                        fireCount = fireCount + 1;
-                    }
-                }
-                return fireCount;
-            }
 
             var yname = []
             var xcount = []
@@ -663,7 +634,7 @@ function createMap(provinceData, coordinates, fire_data) {
             }
 
             for (let yc = 0; yc < provincesWithFireCount.length; yc++) {
-                xcount.push(provincesWithFireCount[yc].count)
+                xcount.push(provincesWithFireCount[yc].numWildfires)
             }
 
             //remove zero from xcount
@@ -680,7 +651,8 @@ function createMap(provinceData, coordinates, fire_data) {
             removeElementsWithValue(xcount, 0)
             removeElementsWithValue(xcount, 1)
             removeElementsWithValue(xcount, 2)
-            removeElementsWithValue(xcount, 3)
+            console.log(xcount)
+            console.log(provincesWithFireCount)
 
             var xl = 77 - xcount.length;
             while(xl--){
@@ -705,10 +677,6 @@ function createMap(provinceData, coordinates, fire_data) {
             for (let k = 0; k < xcount.length; k++) {
                 xcount[k] = xcount[k] * 300
             }
-
-            console.log(xcount)
-            console.log(yname)
-            console.log(provincesWithFireCount)
 
             const obj = xcount
             let yInd = -1
@@ -755,7 +723,7 @@ function createMap(provinceData, coordinates, fire_data) {
                 .attr("transform", function(d) { return (x(d.Country) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "rotate(180)" : "rotate(0)"; })
                 .style("font-size", "11px")
                 .attr("alignment-baseline", "middle")
-        })
+
     }
 
     document.getElementById("showToday").onclick = () => {

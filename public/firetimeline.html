@@ -53,7 +53,8 @@
   <script src="https://d3js.org/d3.v6.min.js"></script>
   <script src="https://d3js.org/d3-geo-projection.v3.min.js"></script>
 
-
+    <!-- Function for radial charts -->
+    <script src="https://cdn.jsdelivr.net/gh/holtzy/D3-graph-gallery@master/LIB/d3-scale-radial.js"></script>
 
 
 </head>
@@ -88,9 +89,15 @@
       
       </div>
     </div>
-
+    <div id = "my_dataviz_container">
+        <div id="my_dataviz"></div>
+    </div>
 
     <style>
+        #my_dataviz {
+            position: absolute;
+            z-index: 6000;
+        }
         #legend_container {
           width: 300px;
           height: 150px;
