@@ -104,7 +104,7 @@ function createMap(provinceData, coordinates, fire_data) {
     function style(province_name) {
         if (map.getZoom() > 9) {
             return {
-                "color": "blue",
+                "color": "red",
                 "weight" : "0",
                 "fillOpacity": "0"
             }
@@ -123,8 +123,6 @@ function createMap(provinceData, coordinates, fire_data) {
                     "fillOpacity": "0"
                 }
             }
-
-
         }
     }
 
@@ -139,7 +137,7 @@ function createMap(provinceData, coordinates, fire_data) {
     // e is the mouse event. e.target is the province object
     function zoomToFeature(e) {
         let province_name = e.target.feature.properties.name
-
+        console.log(province_name)
         drawBarGraph(get_fire_data_query('SELECT * FROM ? WHERE name="' + province_name + '"'), province_name)
 
         map.flyToBounds(e.target.getBounds());
@@ -574,7 +572,7 @@ function createMap(provinceData, coordinates, fire_data) {
         let fireData = get_fire_data_query(`SELECT * FROM ? WHERE name="${province}"`);
         let averages = []
         let i;
-        for(i = 0; i < 7; i++) {
+        for(i = 0; i < 6; i++) {
             averages.push( {date: fireData[i].date, value: -999} )
         }
         for(i = 6; i < fireData.length; i++) {
@@ -626,7 +624,13 @@ function createMap(provinceData, coordinates, fire_data) {
     }
 
     document.getElementById("showToday").onclick = () => {
+        slider.value = uniqueDates.length - 1
+        console.log(slider.value)
+        displayed_date.innerHTML = "Today's Date: " + uniqueDates[slider.value];
         console.log("Showing Today");
+        changeDate()
+        reset()
+
     }
 
 }
