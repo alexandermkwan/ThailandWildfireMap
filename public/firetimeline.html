@@ -65,7 +65,7 @@
     <div id="map" class="center container-fluid"></div>
     <div class="topnav" id="myTopnav">
       <a href="#home" id="showTrend" onclick='trendFunction();' class="active">Show Trend</a>
-      <a href="#news" id="affectedRegions">Most Affected Regions</a>
+      <a href="#news" id="affectedRegions">Most Affected Regions On Today's date</a>
       <a href="#contact" id="showToday">Show Today</a>
       <h5 id="displayed_date"></h5>
     </div>
@@ -90,6 +90,7 @@
       </div>
     </div>
     <div id = "my_dataviz_container">
+        <div id = "my_dataviz_exit"></div>
         <div id="my_dataviz"></div>
     </div>
 
@@ -97,6 +98,7 @@
         #my_dataviz {
             position: absolute;
             z-index: 6000;
+            background-color: white;
         }
         #legend_container {
           width: 300px;
