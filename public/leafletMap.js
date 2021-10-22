@@ -572,7 +572,15 @@ function createMap(provinceData, coordinates, fire_data) {
             .attr("id", "delete_button_bar")
             .attr("x", "85%")
 
-
+        svg.append("g")
+            // .style("transform", `translate(${50}px,${15}px)`)
+            .append("text")
+            .attr("class", "title")
+            .attr("x", 150)
+            .attr("y", 15)
+            .attr("text-anchor", "middle")
+            .text("Last 7 days for " + province_name)
+            .style("font-size", "14px")
 
 
         document.getElementById("delete_button_bar").onclick= function() {
