@@ -616,6 +616,7 @@ function createMap(provinceData, coordinates, fire_data) {
     }
 
     document.getElementById("affectedRegions").onclick = () => {
+            document.getElementById("my_dataviz_container").style.display = "block";
             document.getElementById('my_dataviz').innerHTML ="";
             var date = uniqueDates[slider.value];
             let fireData = get_fire_data_query(`SELECT * FROM ? WHERE date ='${date}'`)
@@ -733,6 +734,11 @@ function createMap(provinceData, coordinates, fire_data) {
         console.log("Showing Today");
         changeDate()
         reset()
+
+    }
+
+    document.getElementById("my_dataviz_exit").onclick = () => {
+        document.getElementById("my_dataviz_container").style.display = "none";
 
     }
 

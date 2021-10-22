@@ -90,11 +90,28 @@
       </div>
     </div>
     <div id = "my_dataviz_container">
-        <div id = "my_dataviz_exit"></div>
+        <div id = "my_dataviz_exit">Exit</div>
         <div id="my_dataviz"></div>
     </div>
 
     <style>
+        #my_dataviz_exit {
+          position: absolute;
+          z-index: 6003;
+          top: 10px;
+          left: 25em;
+          background: gray;
+          width: 46px;
+          text-align: center;
+          font-weight: bold;
+          cursor: pointer;
+        }
+        #my_dataviz_container {
+          display: none;
+          z-index: 6000;
+          position: absolute;
+          top: 82px;
+        }
         #my_dataviz {
             position: absolute;
             z-index: 6000;
