@@ -488,7 +488,14 @@ function createMap(provinceData, coordinates, fire_data) {
             .attr("width", "30px")
             .attr("id", "delete_button_graph")
             .attr("x", "85%")
+        d3.select("#wrapper").append("text").text("Exit")
+            .attr("id", "exit_bar")
+            .attr("fill","white")
+            .attr("x", "85%")
+            .attr("y", "5%")
+            .attr("pointer-events", "none")
 
+        document.getElementById("delete_button_graph").innerHTML = "Exit"
         document.getElementById("delete_button_graph").onclick= function() {
             console.log("clicked")
             document.getElementById("wrapper").style.visibility = "hidden"
@@ -556,6 +563,12 @@ function createMap(provinceData, coordinates, fire_data) {
             .attr("width", "30px")
             .attr("id", "delete_button_bar")
             .attr("x", "85%")
+        g.append("text").text("Exit")
+            .attr("id", "exit_bar")
+            .attr("fill","white")
+            .attr("x", "86%")
+            .attr("y", "8%")
+            .attr("pointer-events", "none")
 
         document.getElementById("delete_button_bar").onclick= function() {
             console.log("clicked")
@@ -673,7 +686,7 @@ function createMap(provinceData, coordinates, fire_data) {
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
-                .attr("transform", `translate(${width/2+margin.left}, ${height/2+margin.top})`);
+                .attr("transform", `translate(${width/2+margin.left}, ${(height/2+margin.top) - 50})`);
 
             for (let k = 0; k < xcount.length; k++) {
                 xcount[k] = xcount[k] * 300
