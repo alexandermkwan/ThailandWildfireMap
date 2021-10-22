@@ -65,13 +65,13 @@
     <div id="map" class="center container-fluid"></div>
     <div class="topnav" id="myTopnav">
       <a href="#home" id="showTrend" onclick='trendFunction();' class="active">Show Trend</a>
-      <a href="#news" id="affectedRegions">Most Affected Regions On Today's date</a>
+      <a href="#news" id="affectedRegions">Most Affected Regions By Date</a>
       <a href="#contact" id="showToday">Show Today</a>
       <h5 id="displayed_date"></h5>
     </div>
 
     <div class="range-slider">
-      <input class="range-slider__range" type="range" value="0" min="0" max="7" step="1" id="mySlider">
+        <input class="range-slider__range" type="range" value="0" min="0" max="7" step="1" id="mySlider">
     </div>
     <p>The name of the province is </p>
     <p id="provinceName"></p>
@@ -79,15 +79,15 @@
     <svg id="bar_graph" width="300" height="250"></svg>
     <svg id="wrapper" width="600" height="1000"></svg>
     <div id="legend_container">
-      <div id="legend_container_title">Legend</div>
-      <div id="legend_container_boxes">
-        <div id="legend_container_red"></div>
-        <span style="font-weight: bold; position: relative; bottom: 10px; margin-right: 65px">Unusually High Activity</span>
-        <div id="legend_container_circle"></div>
-        <span style="font-weight: bold; position: relative; bottom: 10px;">New Fire Detected</span>
-      </div>
-      
-      </div>
+        <div id="legend_container_title">Legend</div>
+        <div id="legend_container_boxes">
+            <div id="legend_container_red"></div>
+            <span style="font-weight: bold; position: relative; bottom: 10px; margin-right: 65px">Unusually High Activity</span>
+            <div id="legend_container_circle"></div>
+            <span style="font-weight: bold; position: relative; bottom: 10px;">New Fire Detected</span>
+        </div>
+
+    </div>
     </div>
     <div id = "my_dataviz_container">
         <div id = "my_dataviz_exit">Exit</div>
@@ -97,21 +97,22 @@
     <style>
 
         #my_dataviz_exit {
-          position: absolute;
-          z-index: 6003;
-          top: 10px;
-          left: 25em;
-          background: gray;
-          width: 46px;
-          text-align: center;
-          font-weight: bold;
-          cursor: pointer;
+            position: absolute;
+            z-index: 6003;
+            top: 10px;
+            left: 25em;
+            background: gray;
+            width: 46px;
+            text-align: center;
+            font-weight: bold;
+            cursor: pointer;
         }
         #my_dataviz_container {
           display: none;
           z-index: 6000;
           position: absolute;
           top: 82px;
+            left: 25%;
         }
         #my_dataviz {
             position: absolute;
@@ -197,10 +198,6 @@
         color: black;
       }
 
-      .topnav a.active {
-        background-color: #04AA6D;
-        color: white;
-      }
       #bar_graph {
         position: absolute;
         z-index: 5000;
