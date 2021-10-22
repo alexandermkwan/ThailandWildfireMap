@@ -503,6 +503,7 @@ function createMap(provinceData, coordinates, fire_data) {
     }
 
     function drawBarGraph(data, province_name) {
+        data = data.slice(-7)
         document.getElementById("bar_graph").innerHTML = ""
         document.getElementById("bar_graph").style.visibility = "visible"
 
@@ -517,8 +518,6 @@ function createMap(provinceData, coordinates, fire_data) {
 
         var g = svg.append("g")
             .attr("transform", "translate(" + 20 + "," + 20 + ")");
-
-        console.log("height height: ", g.get)
 
         g.append("rect")
             .attr("transform", "translate(" + -20 + "," + -20 + ")")
@@ -558,6 +557,15 @@ function createMap(provinceData, coordinates, fire_data) {
             document.getElementById("bar_graph").style.visibility = "hidden"
         }
 
+        let texts = document.getElementsByTagName("text")
+        console.log(texts)
+        texts.forEach(text => {
+            let the_date = text.innerHTML
+            if(the_date.substring(0,4) == '2021') {
+                text.innerHTML = the_date.substring(5, 10)
+            }
+        })
+
         g.append("rect")
             .attr("height", "30px")
             .attr("width", "30px")
@@ -569,6 +577,9 @@ function createMap(provinceData, coordinates, fire_data) {
             .attr("x", "86%")
             .attr("y", "8%")
             .attr("pointer-events", "none")
+
+
+
 
         document.getElementById("delete_button_bar").onclick= function() {
             console.log("clicked")
