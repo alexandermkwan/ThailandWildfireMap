@@ -479,7 +479,7 @@ function createMap(provinceData, coordinates, fire_data) {
             .attr("x", dimensions.width / 2)
             .attr("y", dimensions.margin.top / 2)
             .attr("text-anchor", "middle")
-            .text("Data for " + province_name)
+            .text("Yearly summary")
             .style("font-size", "36px")
             .style("text-decoration", "underline");
 
@@ -691,7 +691,7 @@ function createMap(provinceData, coordinates, fire_data) {
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
-                .attr("transform", `translate(${width/2+margin.left}, ${height/2+margin.top})`);
+                .attr("transform", `translate(${width/2+margin.left}, ${(height/2+margin.top)-50})`);
 
             for (let k = 0; k < xcount.length; k++) {
                 xcount[k] = xcount[k] * 300
